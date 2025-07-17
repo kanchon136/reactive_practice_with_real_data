@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Customer Stream</title>
+</head>
+<body>
+<h2>Customer Streaming Data</h2>
+<pre id="output">Waiting...</pre>
+
+<script>
+    const output = document.getElementById("output");
+
+    const eventSource = new EventSource("/stream-customers");
+
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        output.textContent += JSON.stringify(data, null, 2) + "\n\n";
+    };
+
+    eventSource.onerror = () => {
+        output.textContent += "\n[Connection closed]";
+        eventSource.close();
+    };
+</script>
+</body>
+</html>
