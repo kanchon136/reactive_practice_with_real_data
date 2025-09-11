@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>spring_reactive</groupId>
 	<artifactId>spring_reactive</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>spring_reactive</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>3.5.8</version> <!-- or latest -->
+			<version>3.6.16</version> <!-- or latest -->
 		</dependency>
 
 
