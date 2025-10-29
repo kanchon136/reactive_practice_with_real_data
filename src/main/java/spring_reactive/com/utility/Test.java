@@ -12,9 +12,12 @@ import spring_reactive.com.exception.ResourceNotFoundException;
 import javax.xml.transform.sax.SAXSource;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Test {
@@ -222,7 +225,7 @@ public class Test {
 //
 //      souce.takeUntilOther(stopper).subscribe(System.out::println);
 
-        System.out.println("================switchIfEmpty==if the first Flux or Mono full source is Empty then other can execute for value ");
+    //    System.out.println("================switchIfEmpty==if the first Flux or Mono full source is Empty then other can execute for value ");
 //
 //        Flux<Integer> integerFlux = Flux.empty();
 //         integerFlux.switchIfEmpty(Flux.just(1,3,4,5)).subscribe(System.out::println);
@@ -360,25 +363,169 @@ public class Test {
 //                                  })
 //                  .subscribe();
 
-        System.out.println("====publish + publishOn Or share that mena conld ke hot kore scheduler e run kora");
+//        System.out.println("====publish + publishOn Or share that mena conld ke hot kore scheduler e run kora");
+//
+//           Flux<Long> integerConnectableFlux =    Flux.interval(Duration.ofMillis(100))
+//           .doOnSubscribe(s-> System.out.println("subscription Start "))
+//                        .map(up->{
+//                          //  System.out.println("upstream==> "+Thread.currentThread().getName());
+//                            return  up;
+//
+//                        }).publishOn(Schedulers.boundedElastic()).map(down-> {
+//                          //  System.out.println("downstream======> "+Thread.currentThread().getName());
+//                            return down;
+//
+//                      }).share();
+//
+//   integerConnectableFlux.subscribe(s-> System.out.println("sub1===> "+s));
+//   Thread.sleep(2000);
+//   integerConnectableFlux.subscribe(s-> System.out.println("Sub2===> "+s));
 
-   Flux<Long> integerConnectableFlux =    Flux.interval(Duration.ofMillis(100))
-           .doOnSubscribe(s-> System.out.println("subscription Start "))
-                        .map(up->{
-                          //  System.out.println("upstream==> "+Thread.currentThread().getName());
-                            return  up;
-
-                        }).publishOn(Schedulers.boundedElastic()).map(down-> {
-                          //  System.out.println("downstream======> "+Thread.currentThread().getName());
-                            return down;
-
-                      }).share();
-
-   integerConnectableFlux.subscribe(s-> System.out.println("sub1===> "+s));
-   Thread.sleep(2000);
-   integerConnectableFlux.subscribe(s-> System.out.println("Sub2===> "+s));
+//        System.out.println("========onErrorComplete=====error holew stream stop hobena,, but subscriber er kache error jabena mone hobe jeno kuno error E hou nai...");
+//
+//        Flux.just("A","B","C","D").map( v->{
+//          if (v.equalsIgnoreCase("C")) throw new RuntimeException("Error");
+//           return  v;
+//        }).onErrorComplete().subscribe(value-> System.out.println("value==>"+value)
+//                , error-> System.out.println("error==>"+error),
+//                ()-> System.out.println("completed stream"));
 
 
+//        System.out.println("=========onErrorContinue ==== error hole oi value ta skip korbe and porer stram cholbe and ki error hoiche and kun value ta subscriber jante parbe");
+//        Flux.just("10", "20","xx","30").map(Integer::parseInt)
+//                        .onErrorContinue((err, value)-> System.out.println("error and value===> "+err +" =========  "+ value))
+//                                .subscribe(s-> System.out.println("value =="+s));
+
+
+//        System.out.println("=========onErrorStop ===== error hole sathe sathe stream stop hoye jabe and error propegatekorbe ,, other error handaling call kora thaklew kaj korbena");
+//
+//        Flux.just(1,3,5,6,0).map( i -> 1000/i)
+//                        .onErrorStop().subscribe(va->
+//                        System.out.println("val==>"+va) ,
+//                        err-> System.out.println("error==>"+err));
+//
+
+
+//        System.out.println("======onErrorMap====error ke custom exception ba onno exception e convert kora");
+//
+//        Flux.just("1","2","3","z","5","6").map(Integer::parseInt).
+//                onErrorMap(ex-> new Throwable("Parsing Error===>"+ex))
+//                .subscribe(System.out::println);
+
+//        System.out.println("=========onErrorResume =====error hole fallback publisher return kora jabe , new publisher return korte parbo");
+//
+//        Flux.just("1","2","x","4","5")
+//                        .map(Integer::parseInt).onErrorResume(e-> Flux.just(8,9)).subscribe(System.out::println);
+//
+//
+//        System.out.println("======onErrorReturn ===Error hole ekta fixed value return kore Flux complete kore dey ");
+//        Flux.range(1,20).map(m->{
+//            if (m== 3) throw new RuntimeException("Not suppoort ");
+//            return  m;
+//        }).onErrorReturn(-99).subscribe(v-> System.out.println("value==>"+v),
+//                err-> System.out.println("error==>"+err),()-> System.out.println("Completed==>"));
+
+
+//        System.out.println("======merge=== multiple publisher ke asyncronously meger korte chaile , je data age emmit korbe , shei data age show hobe[ Deferent  type supported] ");
+//        Flux<Integer> flux1 = Flux.just(1,2,4,5).delayElements(Duration.ofMillis(100));
+//        Flux<Integer> flux2 = Flux.just(6,7,8,9,10).delayElements(Duration.ofMillis(100));
+//        Flux<String> flux3 = Flux.just("11","12","13","14","15").delayElements(Duration.ofMillis(100));
+//
+//        Flux.merge(flux1,flux2,flux3).subscribe(System.out::println);
+
+//        System.out.println("====mergeWith holo , amra jodi duita publisher ke merge korte chai , r sob logic merge er moto but same data type hote hobe");
+//
+//        Flux<Integer> flux4 = Flux.just(6,7,8,9,10).delayElements(Duration.ofMillis(100));
+//        Flux<Integer> flux5 = Flux.just(11,12,13,14,15).delayElements(Duration.ofMillis(100));
+//
+//        flux4.mergeWith(flux5).subscribe(System.out::println);
+
+//        System.out.println("========materialized=== protita publisher  event guloke ke signal object e wrap kore, onNext , onError , OnComplete sob object ke ekta object e rupantor kore");
+//
+//        Flux<Signal<Integer>> integerFlux = Flux.range(1,10).materialize();
+//        integerFlux.subscribe(signal-> System.out.println(signal.getType()+"  "+signal.get()+ " "+signal.getThrowable()));
+
+
+//        System.out.println("==========hasElement===কোনো parameter নেয় না।;  Flux-এ কমপক্ষে একটা element আসলে true, না থাকলে false emit করে।");
+//        Flux<Integer> integerFlux = Flux.range(1,5);
+//        integerFlux.hasElements().subscribe(System.out::println);
+//
+//        Flux<String> stringFlux = Flux.empty();
+//        stringFlux.hasElements().subscribe(System.out::println);
+//
+//
+//        System.out.println("=======handle == map + filter + error একসাথে control করার জন্য");
+//      //  BiFunction
+
+//
+//        System.out.println("===doOnSubscribe====ই operator টা subscription শুরু হবার সাথে সাথেই trigger হয়।\n" +
+//                "অর্থাৎ যখন কোনো Subscriber (মানে তুমি যখন subscribe() call করো) upstream Publisher এ subscribe করে, তখনই এটা চলবে।" +
+//                "Backpressure Control – subscription এর উপর কত data request হবে, সেটা manual control করা যায়।");
+
+//        Flux.range(1, 20)
+//                .doOnSubscribe(subscription -> {
+//                    System.out.println("=== Subscription started ===");
+//                    subscription.request(2); // প্রথমে শুধু ২টা
+//                })
+//                .doOnNext(v -> System.out.println("value => " + v))
+//                .subscribe();
+
+//                .doOnNext(v-> System.out.println("value==>"+v)).doOnError(eer-> System.out.println("Error==>"+eer.getMessage()))
+//                        .doOnComplete(()-> System.out.println("Flux Completed")).elapsed()
+//                                .subscribe(time-> {
+//                                    System.out.println(time.getT1()+"  "+ time.getT2());
+//                                });
+
+
+//        System.out.println("=====doOnRequest====এটা হলো এমন একটা callback যা trigger হয় যখনই subscriber upstream থেকে কত data চাইলো (request(n))।\n" +
+//                "\n" +
+//                "\uD83D\uDCCC মানে: subscriber যখন subscription.request(n) কল করবে, doOnRequest সেটা ধরবে।");
+//
+//
+//
+//        Flux.range(1,10).doOnRequest(n-> System.out.println("Subscriber request data ==>"+ n +" data"))
+//                        .subscribe(new BaseSubscriber<Integer>() {
+//                            @Override
+//                            protected void hookOnSubscribe(Subscription subscription) {
+//                                System.out.println("Subscribed");
+//                                subscription.request(3);
+//                            }
+//
+//                            @Override
+//                            protected void hookOnNext(Integer value) {
+//                                System.out.println("Got value"+value);
+//                                request(2);
+//                            }
+//                        });
+
+
+//        System.out.println("doAfterTerminate======> eta trigger complete ba error gotar por");
+//
+//
+//        Flux<Integer> integerFlux = Flux.just(1,1,2,3,4,3,0,6).map(v-> 10/v)
+//                        .doOnTerminate(()-> System.out.println("DoOnTerminate call"))
+//                                .doAfterTerminate(()-> System.out.println("doAfterTerminate call"))
+//                .distinctUntilChanged();
+//
+//        integerFlux.subscribe(con-> System.out.println("value ==="+ con), error-> System.out.println("error====>"+error.getMessage()),()-> System.out.println("Stream is completeted"));
+
+        Flux<Employee> employeeFlux = Flux.just(new Employee(1,"kanchon") , new Employee(2,"kanchon"),
+                new Employee(3,"kanchon"),new Employee(4,"numan"))
+                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
+                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
+                .filter(v-> v.getName() != null)
+                .distinctUntilChanged(Employee::getName, String::equals);
+
+        System.out.println("================================================================================");
+
+        Flux<Employee> employeeFluxnew = Flux.just(new Employee(1,"kanchon") , new Employee(2,"numan"),
+                        new Employee(3,"kanchon"),new Employee(4,"numan"))
+                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
+                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
+                .filter(v-> v.getName() != null)
+                .distinct(Employee::getName, HashSet::new, (set,key)-> set.add(key.toLowerCase()), Collection::clear);
+        employeeFlux.subscribe(value-> System.out.println("value==>"+value.getName()),
+                err-> System.out.println("error=>"+err.getMessage()),()-> System.out.println("Stream is completed"));
 
 
         Thread.sleep(20000);
@@ -387,5 +534,33 @@ public class Test {
 
     public static boolean isAuthorized(String user){
         return "admin".equalsIgnoreCase(user);
+    }
+}
+
+class  Employee{
+    private int id;
+    private String name;
+
+    public Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Employee(){}
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

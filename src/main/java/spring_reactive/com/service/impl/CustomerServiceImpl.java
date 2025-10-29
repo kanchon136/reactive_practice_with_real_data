@@ -121,6 +121,8 @@ public class CustomerServiceImpl implements CustomerService {
                             dtoList.sort(Comparator.comparing(CustomerDto::getId));
                             return dtoList;
                         })
+
+
         ).map(tuple -> {
             long total = tuple.getT1();
             List<CustomerDto> sortedDtoList = tuple.getT2();
