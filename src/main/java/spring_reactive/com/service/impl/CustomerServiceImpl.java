@@ -2,6 +2,7 @@ package spring_reactive.com.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import spring_reactive.com.dto.CustomerDto;
@@ -32,24 +33,42 @@ public class CustomerServiceImpl implements CustomerService {
         this.addressRepository = addressRepository;
     }
 
+//    @Override
+//    public Mono<CustomerDto> saveCustomerWithAddress(CustomerDto dto) {
+//
+//
+//        return customerRepository.save(EntityAndDtoMapper.toCustomerEntity(dto))
+//                .flatMap(savedCustomer ->
+//                        addressRepository.saveAll(dto.getAddresses().stream()
+//                                                .map(add ->
+//                                                        EntityAndDtoMapper.toAddressEntity(add, savedCustomer.getId()))
+//                                                .toList()).collectList()
+//                                .map(savedAddress ->
+//                                        EntityAndDtoMapper.toCustomerDto(savedCustomer, savedAddress)))
+//                                .onErrorResume(err -> {
+//                                    log.error("Failed to save customer or address: {}", err.getMessage(), err);
+//                                         return Mono.just(EntityAndDtoMapper.toCustomerDto(EntityAndDtoMapper.toCustomerEntity(dto),
+//                                          Collections.emptyList()));
+//
+//                });
+//    }
+
     @Override
+    @Transactional // ১. এটি নিশ্চিত করবে যে যেকোনো এরর হলে পুরো অপারেশন রোলব্যাক হবে
     public Mono<CustomerDto> saveCustomerWithAddress(CustomerDto dto) {
 
-
         return customerRepository.save(EntityAndDtoMapper.toCustomerEntity(dto))
+                .doOnError(err -> log.error("Failed to save customer: {}", err.getMessage())) // ২. শুধু কাস্টমার সেভ ফেল করলে লগ হবে
                 .flatMap(savedCustomer ->
                         addressRepository.saveAll(dto.getAddresses().stream()
-                                                .map(add ->
-                                                        EntityAndDtoMapper.toAddressEntity(add, savedCustomer.getId()))
-                                                .toList()).collectList()
+                                        .map(add ->
+                                                EntityAndDtoMapper.toAddressEntity(add, savedCustomer.getId()))
+                                        .toList())
+                                .collectList()
+                                .doOnError(err -> log.error("Failed to save addresses for customer ID {}: {}", savedCustomer.getId(), err.getMessage())) // ৩. শুধু অ্যাড্রেস সেভ ফেল করলে লগ হবে
                                 .map(savedAddress ->
                                         EntityAndDtoMapper.toCustomerDto(savedCustomer, savedAddress)))
-                                .onErrorResume(err -> {
-                                    log.error("Failed to save customer or address: {}", err.getMessage(), err);
-                                         return Mono.just(EntityAndDtoMapper.toCustomerDto(EntityAndDtoMapper.toCustomerEntity(dto),
-                                          Collections.emptyList()));
-
-                });
+                .doOnError(err -> log.error("Transaction failed, rolling back. Error: {}", err.getMessage())); // ৪. পুরো পাইপলাইনের যেকোনো এররের জন্য ফাইনাল লগ
     }
 
     @Override

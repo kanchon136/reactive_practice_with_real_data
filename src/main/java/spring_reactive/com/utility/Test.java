@@ -12,10 +12,9 @@ import spring_reactive.com.exception.ResourceNotFoundException;
 import javax.xml.transform.sax.SAXSource;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -509,28 +508,214 @@ public class Test {
 //
 //        integerFlux.subscribe(con-> System.out.println("value ==="+ con), error-> System.out.println("error====>"+error.getMessage()),()-> System.out.println("Stream is completeted"));
 
-        Flux<Employee> employeeFlux = Flux.just(new Employee(1,"kanchon") , new Employee(2,"kanchon"),
-                new Employee(3,"kanchon"),new Employee(4,"numan"))
-                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
-                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
-                .filter(v-> v.getName() != null)
-                .distinctUntilChanged(Employee::getName, String::equals);
+//        Flux<Employee> employeeFlux = Flux.just(new Employee(1,"kanchon") , new Employee(2,"kanchon"),
+//                new Employee(3,"kanchon"),new Employee(4,"numan"))
+//                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
+//                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
+//                .filter(v-> v.getName() != null)
+//                .distinctUntilChanged(Employee::getName, String::equals);
+//
+//
+//        System.out.println("================================================================================");
+//
+//        Flux<Employee> employeeFluxnew = Flux.just(new Employee(1,"kanchon") , new Employee(2,"numan"),
+//                        new Employee(3,"kanchon"),new Employee(4,"numan"))
+//                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
+//                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
+//                .filter(v-> v.getName() != null)
+//                .distinct(Employee::getName, HashSet::new, (set,key)-> set.add(key.toLowerCase()), Collection::clear);
+//        employeeFlux.subscribe(value-> System.out.println("value==>"+value.getName()),
+//                err-> System.out.println("error=>"+err.getMessage()),()-> System.out.println("Stream is completed"));
 
-        System.out.println("================================================================================");
+        System.out.println("=======================================CombineLatest=========================================================");
 
-        Flux<Employee> employeeFluxnew = Flux.just(new Employee(1,"kanchon") , new Employee(2,"numan"),
-                        new Employee(3,"kanchon"),new Employee(4,"numan"))
-                .doOnTerminate(()-> System.out.println("calling the doOnTerminate==>"))
-                .doAfterTerminate(()-> System.out.println("calling doAfterTerminate==>"))
-                .filter(v-> v.getName() != null)
-                .distinct(Employee::getName, HashSet::new, (set,key)-> set.add(key.toLowerCase()), Collection::clear);
-        employeeFlux.subscribe(value-> System.out.println("value==>"+value.getName()),
-                err-> System.out.println("error=>"+err.getMessage()),()-> System.out.println("Stream is completed"));
+//        // ২ সেকেন্ড পর পর Required Headcount আপডেট হচ্ছে (ধরি ডাটাবেস থেকে আসছে)
+//        Flux<Integer> requiredFlux = Flux.just(10, 12)
+//                .delayElements(Duration.ofSeconds(2));
+//
+//      // ১ সেকেন্ড পর পর নতুন ক্যান্ডিডেট সিলেক্ট হচ্ছে
+//        Flux<Integer> selectedFlux = Flux.just(1, 2, 3, 4)
+//                .delayElements(Duration.ofSeconds(1));
+//
+//     // combineLatest ব্যবহার করে রিয়েল-টাইম স্ট্যাটাস
+//        Flux<String> statusFlux = Flux.combineLatest(
+//                requiredFlux,
+//                selectedFlux,
+//                (req, sel) -> "Remaining: " + (req - sel) + " [Total: " + req + ", Selected: " + sel + "]"
+//        );
+//
+//        statusFlux.subscribe(System.out::println);
 
 
-        Thread.sleep(20000);
 
-    }
+
+//        System.out.println("===========================normal Flux for test Deafer====================================");
+//
+//        Mono<Long> clock = Mono.just(System.currentTimeMillis());
+//
+//       // ৫ সেকেন্ড পর সাবস্ক্রাইব করলেন
+//        Thread.sleep(1000);
+//        clock.subscribe(t -> System.out.println("Time 1: " + t));
+//
+//       // আরও ২ সেকেন্ড পর আবার সাবস্ক্রাইব করলেন
+//        Thread.sleep(1000);
+//        clock.subscribe(t -> System.out.println("Time 2: " + t));
+//
+//        System.out.println("===============deafer============================");
+//
+//        // defer ছাড়া (একবারই টাইম ফিক্সড হয়ে যাবে)
+//        Mono<Long> staticTime = Mono.just(System.currentTimeMillis());
+//
+//// defer দিয়ে (প্রতিবার নতুন টাইম দিবে)
+//        Mono<Long> lazyTime = Mono.defer(() -> Mono.just(System.currentTimeMillis()));
+//
+//// ২ সেকেন্ড পর পর সাবস্ক্রাইব করলে:
+//        staticTime.subscribe(t -> System.out.println("Static: " + t)); // রেজাল্ট: ১০০
+//        Thread.sleep(1000);
+//
+//        staticTime.subscribe(t -> System.out.println("Static: " + t)); // রেজাল্ট: ১০০ (পুরনো)
+//        Thread.sleep(1000);
+//
+//
+//        lazyTime.subscribe(t -> System.out.println("Lazy: " + t));   // রেজাল্ট: ১০০
+//        Thread.sleep(1000);
+//
+//        lazyTime.subscribe(t -> System.out.println("Lazy: " + t));   // রেজাল্ট: ১০২ (নতুন করে তৈরি)
+//
+//        System.out.println("===================================MergePriority=========================================================");
+//
+//        Flux<Employee> employeeFlux1 = Flux.just(new Employee(1,"a"), new Employee(2,"b"),
+//                new Employee(3,"c")).delayElements(Duration.ofMillis(10));
+//
+//        Flux<Employee> employeeFlux2 = Flux.just(new Employee(5, "d"), new Employee(6,"e"),
+//                new Employee(4,"f")).delayElements(Duration.ofMillis(10));
+//
+//           Flux.mergeComparing(Comparator.comparingInt(Employee::getId),employeeFlux2, employeeFlux1)
+//                        .subscribe(employee -> System.out.println(employee.getId()));
+//
+//           Flux.merge(employeeFlux2,employeeFlux1).sort(Comparator.comparing(Employee::getId))
+//                           .subscribe(pri-> System.out.println(pri.getId()));
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//    Flux<String> slowStream = Flux.interval(Duration.ofMillis(300))
+//            .map(v-> "Slow"+(v))
+//            .doOnCancel(() -> System.out.println("❌ --> Slow Stream কে CANCEL করে দেওয়া হয়েছে!"));
+//
+//    Flux<String> fastStream = Flux.interval(Duration.ofMillis(400))
+//            .map(val-> "fast"+(val));
+//
+//    Flux<Flux<String>> mainStream = Flux.just(slowStream,fastStream)
+//            .delayElements(Duration.ofMillis(400));
+//
+//    Flux.switchOnNext(mainStream).subscribe(data-> System.out.println("data =>"+data),
+//                                          err-> System.out.println("errot"+ err),
+//            ()-> System.out.println("Stream End"));
+
+
+//        System.out.println("============================blockFirst========================================");
+//
+//        Flux<String> blockFirtsTest = Flux.just("Step 1 first value ", "Step 2 second value")
+//                        .delayElements(Duration.ofMillis(200))
+//                                .doOnCancel(()-> System.out.println("Flux ke cacel kore hoiche==============>"));
+//
+//        String getFirstVlaue = blockFirtsTest.blockFirst();
+//        System.out.println(getFirstVlaue);
+//
+//        System.out.println("==============Buffer================================");
+//
+//
+//   DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
+//
+//
+//   Flux.range(1, 100)
+//                   .map(data -> "data==>"+ data)
+//                           .buffer(10)
+//                                   .delayElements(Duration.ofSeconds(5))
+//           .subscribe(batch-> {
+//               String startTime = LocalTime.now().format(dateTimeFormatter);
+//               System.out.println("=================Batch data shuro holo==========================="+startTime);
+//               System.out.println(batch);
+//               System.out.println("==================Batch Data ent holo============================="+LocalTime.now().format(dateTimeFormatter)+"\n\n");
+//           },error-> System.out.println("=============error====="+error)
+//                   , ()-> System.out.println("==========Flux is Completed ===========")
+//
+//           );
+//
+//        System.out.println("========================bufferTimeout====================================================");
+//
+//        Flux<String> emainStreams = Flux.concat(
+//                Flux.just("Email-1", "Email-2","Email-3").delayElements(Duration.ofSeconds(1)),
+//                Flux.just("Email-4","Email-5").delayElements(Duration.ofSeconds(7))
+//        );
+//        emainStreams.bufferTimeout(10,Duration.ofSeconds(5))
+//                        .subscribe(time-> {
+//                                    System.out.println("================Start the buffer Time Out Data=================");
+//                                    System.out.println(time);
+//
+//                        },
+//                                err-> System.out.println("errror==>"+err)
+//                            , ()-> System.out.println("Flux is Completed")
+//                        );
+
+
+//        System.out.println("==================================bufferUntil==========================================");
+//
+//
+//        Flux<String> candidateStream = Flux.just("Candidate-A", "CandiDate-B","Candidate-C","HR-1","Candidate-D","HR-2");
+//        candidateStream.bufferUntil(buf-> buf.startsWith("HR"))
+//                        .subscribe(consume-> {
+//                                    System.out.println("=================this method take value when the condition is matchded and match value take with box");
+//                                    System.out.println(consume);
+//                        },error-> System.out.println("Error===>"+error)
+//                          ,()-> System.out.println("bufferUntil is completed")
+//                        );
+
+
+//        System.out.println("========================================withLatestFrom =====================================");
+//
+//        Flux<String> boardStatusStream = Flux.interval(Duration.ofSeconds(1))
+//                        .map(b-> "BordStatus===="+b).share();
+//
+//        Flux<String> candidateStream = Flux.interval(Duration.ofSeconds(25))
+//                .just("Candidate-Ripon", "Candidate-Asif")
+//                .delayElements(Duration.ofMillis(2500));
+//
+//        candidateStream
+//                .withLatestFrom(boardStatusStream, (candidate, status) -> {
+//                    return candidate + " 🤝 যুক্ত হলো কারেন্ট [" + status + "] এর সাথে";
+//                })
+//                .subscribe(
+//                        result -> System.out.println("📦 আউটপুট: " + result),
+//                        error -> System.err.println("💥 এরর: " + error),
+//                        () -> System.out.println("\n--- প্রসেস সমাপ্ত ---")
+//                );
+
+
+
+
+
+
+
+
+        Thread.sleep(60000);
+
+
+    } // it is main method
+
+
+
+
 
     public static boolean isAuthorized(String user){
         return "admin".equalsIgnoreCase(user);
